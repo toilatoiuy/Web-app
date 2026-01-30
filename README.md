@@ -3,6 +3,7 @@
 Đây là công cụ tính toán phong cách iPhone dành riêng cho giáo viên trường TH&THCS Xuân Lai.
 
 ## 📸 Giao diện ứng dụng
+<img src="demo.png" width="300">
 ![Giao diện Máy tính Xuân Lai](demo.png)
 ## ✨ Điểm nổi bật
 - **Giao diện quen thuộc:** Thiết kế chuẩn iOS giúp thao tác nhanh và chính xác.
