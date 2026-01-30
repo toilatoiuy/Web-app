@@ -3,83 +3,86 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Máy tính Đa năng - Xuân Lai</title>
+    <title>Máy tính Đa năng Xuân Lai</title>
     <link rel="manifest" href="manifest.json">
     <style>
-        :root { --bg: #f0f2f5; --card: #ffffff; --text: #1c1e21; --primary: #007bff; }
-        body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
-        .calc-box { width: 350px; background: var(--card); padding: 25px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
-        .history { height: 40px; text-align: right; color: #888; font-size: 14px; overflow: hidden; }
-        #result { width: 100%; border: none; font-size: 32px; text-align: right; margin-bottom: 20px; outline: none; font-weight: bold; color: var(--primary); }
-        .grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
-        button { height: 60px; border: none; border-radius: 12px; font-size: 18px; font-weight: 600; cursor: pointer; background: #f8f9fa; transition: 0.2s; }
-        button:hover { background: #e9ecef; }
-        button:active { transform: scale(0.95); }
-        .btn-op { color: var(--primary); background: #e7f3ff; }
-        .btn-eq { background: var(--primary); color: white; grid-column: span 2; }
-        .btn-eq:hover { background: #0056b3; }
-        .btn-ac { color: #dc3545; background: #fff1f0; }
+        :root { --bg: #1d1d1f; --panel: #2d2d30; --text: #ffffff; --accent: #007aff; --btn-bg: #3a3a3c; }
+        body { background: var(--bg); display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; font-family: 'Inter', -apple-system, sans-serif; }
+        .calc-wrapper { width: 340px; background: var(--panel); border-radius: 24px; padding: 25px; box-shadow: 0 20px 40px rgba(0,0,0,0.4); }
+        .display-area { text-align: right; margin-bottom: 25px; word-wrap: break-word; min-height: 100px; display: flex; flex-direction: column; justify-content: flex-end; }
+        #history { color: #888; font-size: 16px; margin-bottom: 5px; height: 20px; }
+        #output { color: var(--text); font-size: 48px; font-weight: 300; line-height: 1; }
+        .btn-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+        button { border: none; height: 65px; border-radius: 18px; font-size: 22px; cursor: pointer; transition: all 0.2s; background: var(--btn-bg); color: var(--text); }
+        button:hover { filter: brightness(1.2); }
+        button:active { transform: scale(0.92); }
+        .op { color: var(--accent); font-weight: bold; }
+        .special { background: #ff9f0a; color: white; }
+        .wide { grid-column: span 2; }
     </style>
 </head>
 <body>
 
-<div class="calc-box">
-    <div class="history" id="history"></div>
-    <input type="text" id="result" value="0" readonly>
-    <div class="grid">
-        <button class="btn-ac" onclick="clearAll()">AC</button>
-        <button class="btn-op" onclick="del()">DEL</button>
-        <button class="btn-op" onclick="press('%')">%</button>
-        <button class="btn-op" onclick="press('/')">÷</button>
+<div class="calc-wrapper">
+    <div class="display-area">
+        <div id="history"></div>
+        <div id="output">0</div>
+    </div>
+    <div class="btn-grid">
+        <button onclick="clearAll()" class="op">AC</button>
+        <button onclick="backspace()" class="op">⌫</button>
+        <button onclick="insert('**')" class="op">xʸ</button>
+        <button onclick="insert('/')" class="op">÷</button>
         
-        <button onclick="press('7')">7</button>
-        <button onclick="press('8')">8</button>
-        <button onclick="press('9')">9</button>
-        <button class="btn-op" onclick="press('*')">×</button>
+        <button onclick="insert('7')">7</button>
+        <button onclick="insert('8')">8</button>
+        <button onclick="insert('9')">9</button>
+        <button onclick="insert('*')" class="op">×</button>
         
-        <button onclick="press('4')">4</button>
-        <button onclick="press('5')">5</button>
-        <button onclick="press('6')">6</button>
-        <button class="btn-op" onclick="press('-')">−</button>
+        <button onclick="insert('4')">4</button>
+        <button onclick="insert('5')">5</button>
+        <button onclick="insert('6')">6</button>
+        <button onclick="insert('-')" class="op">−</button>
         
-        <button onclick="press('1')">1</button>
-        <button onclick="press('2')">2</button>
-        <button onclick="press('3')">3</button>
-        <button class="btn-op" onclick="press('+')">+</button>
+        <button onclick="insert('1')">1</button>
+        <button onclick="insert('2')">2</button>
+        <button onclick="insert('3')">3</button>
+        <button onclick="insert('+')" class="op">+</button>
         
-        <button onclick="press('0')">0</button>
-        <button onclick="press('.')">.</button>
-        <button class="btn-eq" onclick="equal()">=</button>
+        <button onclick="insert('0')" class="wide">0</button>
+        <button onclick="insert('.')">.</button>
+        <button onclick="calculate()" class="special">=</button>
     </div>
 </div>
 
 <script>
-    let res = document.getElementById('result');
-    let hist = document.getElementById('history');
+    const output = document.getElementById('output');
+    const history = document.getElementById('history');
+    let currentInput = "";
 
-    function press(val) {
-        if (res.value === "0") res.value = val;
-        else res.value += val;
+    function insert(val) {
+        if (output.innerText === "0" && val !== '.') currentInput = "";
+        currentInput += val;
+        output.innerText = currentInput.replace('**', '^').replace('*', '×').replace('/', '÷');
     }
 
-    function clearAll() { res.value = "0"; hist.innerText = ""; }
-    
-    function del() {
-        res.value = res.value.length > 1 ? res.value.slice(0, -1) : "0";
-    }
+    function clearAll() { currentInput = ""; output.innerText = "0"; history.innerText = ""; }
+    function backspace() { currentInput = currentInput.slice(0, -1); output.innerText = currentInput || "0"; }
 
-    function equal() {
+    function calculate() {
         try {
-            let expression = res.value.replace('×', '*').replace('÷', '/');
-            hist.innerText = res.value + " =";
-            res.value = eval(expression);
+            history.innerText = output.innerText + " =";
+            let result = eval(currentInput);
+            output.innerText = Number.isInteger(result) ? result : result.toFixed(4);
+            currentInput = result.toString();
         } catch {
-            res.value = "Lỗi phép tính";
+            output.innerText = "Lỗi";
+            currentInput = "";
         }
     }
 
     if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.register('./sw.js').then(() => console.log("Multi-Calc Ready"));
+        navigator.serviceWorker.register('./sw.js').then(() => console.log("Super Calc PWA Active"));
     }
 </script>
 </body>
